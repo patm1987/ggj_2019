@@ -27,7 +27,7 @@ void handle_cmd(android_app* pApp, int32_t cmd) {
     switch (cmd) {
         case APP_CMD_INIT_WINDOW:
             // TODO: create the game at app entry, just create a renderer here
-            pApp->userData = new Game();
+            pApp->userData = new Game(pApp);
             break;
         case APP_CMD_TERM_WINDOW:
             // TODO: keep the game, just recreate the renderer

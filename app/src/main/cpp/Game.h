@@ -5,12 +5,19 @@
 #ifndef GGJ_2019_GAME_H
 #define GGJ_2019_GAME_H
 
+#include <vulkan_wrapper.h>
+
+struct android_app;
 
 class Game {
 public:
-    Game();
+    Game(android_app* pApp);
     ~Game();
 private:
+    VkInstance _instance;
+    VkSurfaceKHR _surface;
+    VkPhysicalDevice _gpu;
+    VkDevice _device;
 };
 
 
