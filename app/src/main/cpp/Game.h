@@ -13,11 +13,16 @@ class Game {
 public:
     Game(android_app* pApp);
     ~Game();
+
 private:
     VkInstance _instance;
     VkSurfaceKHR _surface;
     VkPhysicalDevice _gpu;
     VkDevice _device;
+
+    VkExtent2D _displaySize;
+    VkSwapchainKHR _swapchain;
+    uint32_t _swapchainLength;
 };
 
 

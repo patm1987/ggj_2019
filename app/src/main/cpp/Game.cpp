@@ -130,9 +130,52 @@ Game::Game(android_app *pApp) {
     deviceCreateInfo.ppEnabledExtensionNames = deviceExt.data();
     deviceCreateInfo.pEnabledFeatures = nullptr;
     CALL_VK(vkCreateDevice(_gpu, &deviceCreateInfo, nullptr, &_device));
+
+    uint32_t formatCount = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(_gpu, _surface, &formatCount, nullptr);
+    std::vector<VkSurfaceFormatKHR> surfaceFormats = std::vector<VkSurfaceFormatKHR>(formatCount);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(_gpu, _surface, &formatCount, surfaceFormats.data());
+    std::stringstream foundFormatsLog;
+    foundFormatsLog << "Found " << surfaceFormats.size() << " Formats";
+    Logger::Info(foundFormatsLog.str());
+
+    uint32_t chosenFormat;
+    for(chosenFormat = 0; chosenFormat < formatCount; chosenFormat++) {
+        if (surfaceFormats[chosenFormat].format == VK_FORMAT_R8G8B8A8_UNORM) {
+            break;
+        }
+    }
+    assert(chosenFormat < formatCount);
+
+    // create a swapchain, choosing the minimum number of surfaces
+    _displaySize = surfaceCapabilities.currentExtent;
+    VkSwapchainCreateInfoKHR swapchainCreateInfo = {};
+    swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swapchainCreateInfo.surface = _surface;
+    swapchainCreateInfo.minImageCount = surfaceCapabilities.minImageCount;
+    swapchainCreateInfo.imageFormat = surfaceFormats[chosenFormat].format;
+    swapchainCreateInfo.imageColorSpace = surfaceFormats[chosenFormat].colorSpace;
+    swapchainCreateInfo.imageExtent = surfaceCapabilities.currentExtent;
+    swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    swapchainCreateInfo.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    swapchainCreateInfo.imageArrayLayers = 1;
+    swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    swapchainCreateInfo.queueFamilyIndexCount = 1;
+    swapchainCreateInfo.pQueueFamilyIndices = &queueFamilyIndex;
+    swapchainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+    swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+    swapchainCreateInfo.clipped = VK_FALSE;
+    CALL_VK(vkCreateSwapchainKHR(_device, &swapchainCreateInfo, nullptr, &_swapchain));
+
+    CALL_VK(vkGetSwapchainImagesKHR(_device, _swapchain, &_swapchainLength, nullptr));
+    std::stringstream swapchainLengthLog;
+    swapchainLengthLog << "Swapchain created of size " << _swapchainLength;
+    Logger::Info(swapchainLengthLog.str());
 }
 
 Game::~Game() {
+    vkDestroySwapchainKHR(_device, _swapchain, nullptr);
+
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyDevice(_device, nullptr);
     vkDestroyInstance(_instance, nullptr);
