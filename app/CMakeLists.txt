@@ -12,8 +12,15 @@ cmake_minimum_required(VERSION 3.4.1)
 set(${CMAKE_C_FLAGS} "${CMAKE_C_FLAGS}")
 add_library(native_app_glue STATIC
         ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
+target_include_directories(native_app_glue PUBLIC
+        ${ANDROID_NDK}/sources/android/native_app_glue)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -DVK_USE_PLATFORM_ANDROID_KHR")
+
+add_library(vulkan_wrapper STATIC
+        ${ANDROID_NDK}/sources/third_party/vulkan/src/common/vulkan_wrapper.cpp)
+target_include_directories(vulkan_wrapper PUBLIC
+        ${ANDROID_NDK}/sources/third_party/vulkan/src/common/)
 
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 add_library( # Sets the name of the library.
@@ -24,9 +31,6 @@ add_library( # Sets the name of the library.
 
         # Provides a relative path to your source file(s).
         src/main/cpp/native-lib.cpp)
-
-target_include_directories(native-lib PRIVATE
-        ${ANDROID_NDK}/sources/android/native_app_glue)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -49,6 +53,7 @@ target_link_libraries( # Specifies the target library.
         native-lib
         android
         native_app_glue
+        vulkan_wrapper
 
         # Links the target library to the log library
         # included in the NDK.
