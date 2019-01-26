@@ -136,7 +136,6 @@ Game::~Game() {
     vkDestroySurfaceKHR(_instance, _surface, nullptr);
     vkDestroyDevice(_device, nullptr);
     vkDestroyInstance(_instance, nullptr);
-    vkDestroyInstance(_instance, nullptr);
 
     Logger::Info("Game Destroyed!");
 }
